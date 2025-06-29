@@ -231,11 +231,23 @@ io.on('connection', (socket) => {
 
   // Join existing call
   socket.on('join_call', ({ username, userId }) => {
+    console.log('User joining call:', username, userId);
+    
     // Notify all users that this user joined the existing call
     io.emit('user_joined_call', {
       username,
       userId,
       socketId: socket.id
+    });
+    
+    // Also emit to the new joiner the list of existing call participants
+    // This helps the frontend know who to create peer connections with
+    const existingParticipants = Array.from(users.values()).filter(user => 
+      user.id !== userId && user.isOnline
+    );
+    
+    socket.emit('existing_call_participants', {
+      participants: existingParticipants
     });
   });
 
