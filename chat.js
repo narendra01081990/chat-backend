@@ -229,6 +229,16 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Join existing call
+  socket.on('join_call', ({ username, userId }) => {
+    // Notify all users that this user joined the existing call
+    io.emit('user_joined_call', {
+      username,
+      userId,
+      socketId: socket.id
+    });
+  });
+
   // Reject call
   socket.on('reject_call', ({ username, userId }) => {
     // Notify all users (including initiator) that this user rejected
