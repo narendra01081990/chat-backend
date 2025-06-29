@@ -162,6 +162,8 @@ app.use((error, req, res, next) => {
 const users = new Map();
 // Store user ID to avatar color mapping
 const userColors = new Map();
+// Store user ID to socket ID mapping for WebRTC signaling
+const userIdToSocketId = new Map();
 
 // Generate random avatar color
 const getRandomColor = () => {
@@ -250,19 +252,31 @@ io.on('connection', (socket) => {
   // WebRTC offer
   socket.on('webrtc_offer', (data) => {
     // data: { to, from, offer }
-    io.to(data.to).emit('webrtc_offer', data);
+    console.log('WebRTC offer from', data.from, 'to', data.to);
+    const targetSocketId = userIdToSocketId.get(data.to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('webrtc_offer', data);
+    }
   });
 
   // WebRTC answer
   socket.on('webrtc_answer', (data) => {
     // data: { to, from, answer }
-    io.to(data.to).emit('webrtc_answer', data);
+    console.log('WebRTC answer from', data.from, 'to', data.to);
+    const targetSocketId = userIdToSocketId.get(data.to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('webrtc_answer', data);
+    }
   });
 
   // WebRTC ICE candidate
   socket.on('webrtc_ice_candidate', (data) => {
     // data: { to, from, candidate }
-    io.to(data.to).emit('webrtc_ice_candidate', data);
+    console.log('WebRTC ICE candidate from', data.from, 'to', data.to);
+    const targetSocketId = userIdToSocketId.get(data.to);
+    if (targetSocketId) {
+      io.to(targetSocketId).emit('webrtc_ice_candidate', data);
+    }
   });
 
   // Handle user joining
@@ -285,6 +299,9 @@ io.on('connection', (socket) => {
       avatarColor,
       isOnline: true
     });
+
+    // Store user ID to socket ID mapping for WebRTC signaling
+    userIdToSocketId.set(id || socket.id, socket.id);
 
     const eventId = `${socket.id}-${Date.now()}`; // Unique event ID
 
@@ -361,6 +378,8 @@ io.on('connection', (socket) => {
     const user = users.get(socket.id);
     if (user) {
       users.delete(socket.id);
+      // Clean up user ID to socket ID mapping
+      userIdToSocketId.delete(user.id);
       const eventId = `${socket.id}-${Date.now()}`; // Unique event ID
       io.emit('user_left', {
         username: user.username,
