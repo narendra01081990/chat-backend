@@ -8,9 +8,26 @@ const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
+
+// Get the current domain for file URLs
+const getCurrentDomain = () => {
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://chat-backend-lfwv.onrender.com';
+  }
+  return 'http://192.168.1.3:5000';
+};
+
 const io = socketIo(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://192.168.1.3:5173', 'http://localhost:3000'],
+    origin: [
+      'http://localhost:5173', 
+      'http://192.168.1.3:5173', 
+      'http://localhost:3000',
+      // Replace 'your-vercel-app.vercel.app' with your actual Vercel domain
+      'https://your-vercel-app.vercel.app', 
+      /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel subdomain
+      /^https:\/\/.*\.onrender\.com$/ // Allow any Render subdomain
+    ],
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -18,7 +35,15 @@ const io = socketIo(server, {
 
 // Enhanced CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://192.168.1.3:5173', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:5173', 
+    'http://192.168.1.3:5173', 
+    'http://localhost:3000',
+    // Replace 'your-vercel-app.vercel.app' with your actual Vercel domain
+    'https://your-vercel-app.vercel.app', 
+    /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel subdomain
+    /^https:\/\/.*\.onrender\.com$/ // Allow any Render subdomain
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -87,7 +112,7 @@ app.post('/upload', upload.array('files', 10), (req, res) => {
       name: file.originalname,
       type: file.mimetype,
       size: file.size,
-      url: `http://192.168.1.3:5000/uploads/${file.filename}`,
+      url: getCurrentDomain() + '/uploads/' + file.filename,
       filename: file.filename
     }));
     
@@ -350,6 +375,10 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`Chat server running on port ${PORT}`);
-  console.log(`Access the chat at http://localhost:${PORT}`);
-  console.log(`For network access, use http://192.168.1.3:${PORT}`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`Production server running at https://chat-backend-lfwv.onrender.com`);
+  } else {
+    console.log(`Access the chat at http://localhost:${PORT}`);
+    console.log(`For network access, use http://192.168.1.3:${PORT}`);
+  }
 });

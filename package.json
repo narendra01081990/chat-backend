@@ -2,10 +2,10 @@
   "name": "chat-app-backend",
   "version": "1.0.0",
   "description": "Backend for real-time chat application",
-  "main": "server.js",
+  "main": "chat.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node chat.js",
+    "dev": "nodemon chat.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
