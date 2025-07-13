@@ -1,0 +1,420 @@
+warning: LF will be replaced by CRLF in chat.js.
+The file will have its original line endings in your working directory
+[1mdiff --git a/chat.js b/chat.js[m
+[1mindex 825695d..7a93fc8 100644[m
+[1m--- a/chat.js[m
+[1m+++ b/chat.js[m
+[36m@@ -2,435 +2,65 @@[m [mconst express = require('express');[m
+ const http = require('http');[m
+ const socketIo = require('socket.io');[m
+ const cors = require('cors');[m
+[31m-const multer = require('multer');[m
+[31m-const path = require('path');[m
+[31m-const fs = require('fs');[m
+ [m
+ const app = express();[m
+ const server = http.createServer(app);[m
+ [m
+[31m-// Get the current domain for file URLs[m
+[31m-const getCurrentDomain = () => {[m
+[31m-  if (process.env.NODE_ENV === 'production') {[m
+[31m-    return 'https://chat-backend-lfwv.onrender.com';[m
+[31m-  }[m
+[31m-  // For development, use HTTPS if available, otherwise HTTP[m
+[31m-  return process.env.HTTPS === 'true' ? 'https://192.168.1.3:5000' : 'http://192.168.1.3:5000';[m
+[31m-};[m
+[31m-[m
+[31m-const io = socketIo(server, {[m
+[31m-  cors: {[m
+[31m-    origin: [[m
+[31m-      'http://localhost:5173', [m
+[31m-      'http://192.168.1.3:5173', [m
+[31m-      'http://localhost:3000',[m
+[31m-      // Replace 'your-vercel-app.vercel.app' with your actual Vercel domain[m
+[31m-      'https://your-vercel-app.vercel.app', [m
+[31m-      /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel subdomain[m
+[31m-      /^https:\/\/.*\.onrender\.com$/ // Allow any Render subdomain[m
+[31m-    ],[m
+[31m-    methods: ['GET', 'POST'],[m
+[31m-    credentials: true[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Enhanced CORS configuration[m
+ app.use(cors({[m
+[31m-  origin: [[m
+[31m-    'http://localhost:5173', [m
+[31m-    'http://192.168.1.3:5173', [m
+[31m-    'http://localhost:3000',[m
+[31m-    // Replace 'your-vercel-app.vercel.app' with your actual Vercel domain[m
+[31m-    'https://your-vercel-app.vercel.app', [m
+[31m-    /^https:\/\/.*\.vercel\.app$/, // Allow any Vercel subdomain[m
+[31m-    /^https:\/\/.*\.onrender\.com$/ // Allow any Render subdomain[m
+[31m-  ],[m
+[32m+[m[32m  origin: '*',[m
+   credentials: true,[m
+[31m-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],[m
+[31m-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'][m
+[31m-}));[m
+[31m-[m
+[31m-app.use(express.json());[m
+[31m-[m
+[31m-// Create uploads directory if it doesn't exist[m
+[31m-const uploadsDir = path.join(__dirname, 'uploads');[m
+[31m-if (!fs.existsSync(uploadsDir)) {[m
+[31m-  fs.mkdirSync(uploadsDir, { recursive: true });[m
+[31m-}[m
+[31m-[m
+[31m-// Configure multer for file uploads[m
+[31m-const storage = multer.diskStorage({[m
+[31m-  destination: function (req, file, cb) {[m
+[31m-    cb(null, uploadsDir);[m
+[31m-  },[m
+[31m-  filename: function (req, file, cb) {[m
+[31m-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);[m
+[31m-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-const upload = multer({ [m
+[31m-  storage: storage,[m
+[31m-  limits: {[m
+[31m-    fileSize: 10 * 1024 * 1024 // 10MB limit[m
+[31m-  },[m
+[31m-  fileFilter: function (req, file, cb) {[m
+[31m-    const allowedTypes = [[m
+[31m-      'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',[m
+[31m-      'application/pdf', 'text/plain', 'application/msword',[m
+[31m-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',[m
+[31m-      'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'[m
+[31m-    ];[m
+[31m-    [m
+[31m-    if (allowedTypes.includes(file.mimetype)) {[m
+[31m-      cb(null, true);[m
+[31m-    } else {[m
+[31m-      cb(new Error('File type not supported'), false);[m
+[31m-    }[m
+[31m-  }[m
+[31m-});[m
+[31m-[m
+[31m-// Serve uploaded files with proper headers[m
+[31m-app.use('/uploads', express.static(uploadsDir, {[m
+[31m-  setHeaders: (res, path) => {[m
+[31m-    res.set('Cross-Origin-Resource-Policy', 'cross-origin');[m
+[31m-    res.set('Access-Control-Allow-Origin', '*');[m
+[31m-  }[m
+ }));[m
+ [m
+[31m-// File upload endpoint with better error handling[m
+[31m-app.post('/upload', upload.array('files', 10), (req, res) => {[m
+[31m-  try {[m
+[31m-    if (!req.files || req.files.length === 0) {[m
+[31m-      return res.status(400).json({ [m
+[31m-        success: false, [m
+[31m-        error: 'No files uploaded' [m
+[31m-      });[m
+[31m-    }[m
+[31m-[m
+[31m-    const uploadedFiles = req.files.map(file => ({[m
+[31m-      id: Date.now().toString() + Math.random(),[m
+[31m-      name: file.originalname,[m
+[31m-      type: file.mimetype,[m
+[31m-      size: file.size,[m
+[31m-      url: getCurrentDomain() + '/uploads/' + file.filename,[m
+[31m-      filename: file.filename[m
+[31m-    }));[m
+[31m-    [m
+[31m-    console.log('Files uploaded successfully:', uploadedFiles.map(f => f.name));[m
+[31m-    res.json({ success: true, files: uploadedFiles });[m
+[31m-  } catch (error) {[m
+[31m-    console.error('Upload error:', error);[m
+[31m-    res.status(500).json({ [m
+[31m-      success: false, [m
+[31m-      error: error.message || 'Upload failed' [m
+[31m-    });[m
+[31m-  }[m
+[32m+[m[32mapp.get('/', (req, res) => {[m
+[32m+[m[32m  res.send('Video Call Signaling Server Running');[m
+ });[m
+ [m
+[31m-// Error handling middleware for multer[m
+[31m-app.use((error, req, res, next) => {[m
+[31m-  if (error instanceof multer.MulterError) {[m
+[31m-    if (error.code === 'LIMIT_FILE_SIZE') {[m
+[31m-      return res.status(400).json({ [m
+[31m-        success: false, [m
+[31m-        error: 'File too large. Maximum size is 10MB.' [m
+[31m-      });[m
+[31m-    }[m
+[31m-    if (error.code === 'LIMIT_FILE_COUNT') {[m
+[31m-      return res.status(400).json({ [m
+[31m-        success: false, [m
+[31m-        error: 'Too many files. Maximum is 10 files.' [m
+[31m-      });[m
+[31m-    }[m
+[31m-  }[m
+[31m-  [m
+[31m-  if (error.message === 'File type not supported') {[m
+[31m-    return res.status(400).json({ [m
+[31m-      success: false, [m
+[31m-      error: 'File type not supported' [m
+[31m-    });[m
+[32m+[m[32mconst io = socketIo(server, {[m
+[32m+[m[32m  cors: {[m
+[32m+[m[32m    origin: '*',[m
+[32m+[m[32m    methods: ['GET', 'POST'][m
+   }[m
+[31m-  [m
+[31m-  console.error('Server error:', error);[m
+[31m-  res.status(500).json({ [m
+[31m-    success: false, [m
+[31m-    error: 'Internal server error' [m
+[31m-  });[m
+ });[m
+ [m
+[31m-// Store connected users[m
+[31m-const users = new Map();[m
+[31m-// Store user ID to avatar color mapping[m
+[31m-const userColors = new Map();[m
+[31m-// Store user ID to socket ID mapping for WebRTC signaling[m
+[31m-const userIdToSocketId = new Map();[m
+[31m-[m
+[31m-// Generate random avatar color[m
+[31m-const getRandomColor = () => {[m
+[31m-  const colors = [[m
+[31m-    'bg-indigo-500',[m
+[31m-    'bg-green-500',[m
+[31m-    'bg-yellow-500',[m
+[31m-    'bg-red-500',[m
+[31m-    'bg-purple-500',[m
+[31m-    'bg-blue-500',[m
+[31m-    'bg-pink-500',[m
+[31m-    'bg-orange-500'[m
+[31m-  ];[m
+[31m-  return colors[Math.floor(Math.random() * colors.length)];[m
+[31m-};[m
+[31m-[m
+[31m-const CHAT_HISTORY_FILE = path.join(__dirname, 'chats.json');[m
+[31m-let chatHistory = [];[m
+[31m-[m
+[31m-// Load chat history from file on server start[m
+[31m-if (fs.existsSync(CHAT_HISTORY_FILE)) {[m
+[31m-  try {[m
+[31m-    const data = fs.readFileSync(CHAT_HISTORY_FILE, 'utf-8');[m
+[31m-    chatHistory = JSON.parse(data);[m
+[31m-  } catch (err) {[m
+[31m-    console.error('Failed to load chat history:', err);[m
+[31m-    chatHistory = [];[m
+[31m-  }[m
+[31m-}[m
+[31m-[m
+[31m-// Helper to save chat history to file[m
+[31m-function saveChatHistory() {[m
+[31m-  try {[m
+[31m-    fs.writeFileSync(CHAT_HISTORY_FILE, JSON.stringify(chatHistory, null, 2), 'utf-8');[m
+[31m-  } catch (err) {[m
+[31m-    console.error('Failed to save chat history:', err);[m
+[31m-  }[m
+[31m-}[m
+[32m+[m[32m// Store users: { userId: socketId }[m
+[32m+[m[32mconst users = {};[m
+ [m
+ io.on('connection', (socket) => {[m
+[31m-  console.log(`New client connected: ${socket.id}`);[m
+[31m-[m
+[31m-  // Send chat history to the newly connected client[m
+[31m-  socket.emit('chat_history', chatHistory);[m
+[31m-[m
+[31m-  // --- Video Call Signaling Events ---[m
+[31m-[m
+[31m-  // Start a group video call[m
+[31m-  socket.on('start_call', ({ username, userId }) => {[m
+[31m-    console.log('User starting call:', username, userId);[m
+[31m-    // Notify all other users of incoming call[m
+[31m-    socket.broadcast.emit('incoming_call', {[m
+[31m-      from: { username, userId, socketId: socket.id }[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // Accept call[m
+[31m-  socket.on('accept_call', ({ username, userId }) => {[m
+[31m-    console.log('User accepting call:', username, userId);[m
+[31m-    // Notify all users (including initiator) that this user accepted[m
+[31m-    io.emit('call_accepted', {[m
+[31m-      username,[m
+[31m-      userId,[m
+[31m-      socketId: socket.id[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // Join existing call[m
+[31m-  socket.on('join_call', ({ username, userId }) => {[m
+[31m-    console.log('User joining call:', username, userId);[m
+[31m-    [m
+[31m-    // Notify all users that this user joined the existing call[m
+[31m-    io.emit('user_joined_call', {[m
+[31m-      username,[m
+[31m-      userId,[m
+[31m-      socketId: socket.id[m
+[31m-    });[m
+[31m-    [m
+[31m-    // Also emit to the new joiner the list of existing call participants[m
+[31m-    // This helps the frontend know who to create peer connections with[m
+[31m-    const existingParticipants = Array.from(users.values()).filter(user => [m
+[31m-      user.id !== userId && user.isOnline[m
+[31m-    );[m
+[31m-    [m
+[31m-    socket.emit('existing_call_participants', {[m
+[31m-      participants: existingParticipants[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // Reject call[m
+[31m-  socket.on('reject_call', ({ username, userId }) => {[m
+[31m-    console.log('User rejecting call:', username, userId);[m
+[31m-    // Notify all users (including initiator) that this user rejected[m
+[31m-    io.emit('call_rejected', {[m
+[31m-      username,[m
+[31m-      userId,[m
+[31m-      socketId: socket.id[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // End call[m
+[31m-  socket.on('end_call', ({ username, userId }) => {[m
+[31m-    console.log('User ending call:', username, userId);[m
+[31m-    // Notify all users to end the call[m
+[31m-    io.emit('call_ended', {[m
+[31m-      username,[m
+[31m-      userId,[m
+[31m-      socketId: socket.id[m
+[31m-    });[m
+[31m-  });[m
+[31m-[m
+[31m-  // WebRTC offer[m
+[31m-  socket.on('webrtc_offer', (data) => {[m
+[31m-    // data: { to, from, offer }[m
+[31m-    console.log('WebRTC offer from', data.from, 'to', data.to);[m
+[31m-    const targetSocketId = userIdToSocketId.get(data.to);[m
+[31m-    if (targetSocketId) {[m
+[31m-      io.to(targetSocketId).emit('webrtc_offer', data);[m
+[31m-    } else {[m
+[31m-      console.log('Target user not found for offer:', data.to);[m
+[31m-    }[m
+[32m+[m[32m  socket.on('join', ({ userId }) => {[m
+[32m+[m[32m    users[userId] = socket.id;[m
+[32m+[m[32m    socket.broadcast.emit('user-joined', { userId });[m
+   });[m
+ [m
+[31m-  // WebRTC answer[m
+[31m-  socket.on('webrtc_answer', (data) => {[m
+[31m-    // data: { to, from, answer }[m
+[31m-    console.log('WebRTC answer from', data.from, 'to', data.to);[m
+[31m-    const targetSocketId = userIdToSocketId.get(data.to);[m
+[31m-    if (targetSocketId) {[m
+[31m-      io.to(targetSocketId).emit('webrtc_answer', data);[m
+[31m-    } else {[m
+[31m-      console.log('Target user not found for answer:', data.to);[m
+[32m+[m[32m  socket.on('call-user', ({ to, offer, from }) => {[m
+[32m+[m[32m    if (users[to]) {[m
+[32m+[m[32m      io.to(users[to]).emit('call-made', { offer, from });[m
+     }[m
+   });[m
+ [m
+[31m-  // WebRTC ICE candidate[m
+[31m-  socket.on('webrtc_ice_candidate', (data) => {[m
+[31m-    // data: { to, from, candidate }[m
+[31m-    console.log('WebRTC ICE candidate from', data.from, 'to', data.to);[m
+[31m-    const targetSocketId = userIdToSocketId.get(data.to);[m
+[31m-    if (targetSocketId) {[m
+[31m-      io.to(targetSocketId).emit('webrtc_ice_candidate', data);[m
+[31m-    } else {[m
+[31m-      console.log('Target user not found for ICE candidate:', data.to);[m
+[32m+[m[32m  socket.on('make-answer', ({ to, answer, from }) => {[m
+[32m+[m[32m    if (users[to]) {[m
+[32m+[m[32m      io.to(users[to]).emit('answer-made', { answer, from });[m
+     }[m
+   });[m
+ [m
+[31m-  // Handle user joining[m
+[31m-  socket.on('user_join', ({ username, id }) => {[m
+[31m-    if (!username || typeof username !== 'string' || username.trim() === '') {[m
+[31m-      socket.emit('error', { message: 'Invalid username' });[m
+[31m-      return;[m
+[32m+[m[32m  socket.on('ice-candidate', ({ to, candidate, from }) => {[m
+[32m+[m[32m    if (users[to]) {[m
+[32m+[m[32m      io.to(users[to]).emit('ice-candidate', { candidate, from });[m
+     }[m
+[31m-[m
+[31m-    // Get or assign avatar color based on user ID[m
+[31m-    let avatarColor = userColors.get(id);[m
+[31m-    if (!avatarColor) {[m
+[31m-      avatarColor = getRandomColor();[m
+[31m-      userColors.set(id, avatarColor);[m
+[31m-    }[m
+[31m-[m
+[31m-    users.set(socket.id, {[m
+[31m-      id: id || socket.id,[m
+[31m-      username,[m
+[31m-      avatarColor,[m
+[31m-      isOnline: true[m
+[31m-    });[m
+[31m-[m
+[31m-    // Store user ID to socket ID mapping for WebRTC signaling[m
+[31m-    userIdToSocketId.set(id || socket.id, socket.id);[m
+[31m-[m
+[31m-    const eventId = `${socket.id}-${Date.now()}`; // Unique event ID[m
+[31m-[m
+[31m-    // Broadcast to all other clients that a new user has joined[m
+[31m-    socket.broadcast.emit('user_joined', {[m
+[31m-      username,[m
+[31m-      users: Array.from(users.values()),[m
+[31m-      eventId[m
+[31m-    });[m
+[31m-[m
+[31m-    // Send current users list to the new user[m
+[31m-    socket.emit('current_users', Array.from(users.values()));[m
+[31m-  });[m
+[31m-[m
+[31m-  // Handle new messages[m
+[31m-  socket.on('send_message', ({ content, messageId, replyTo, attachments }) => {[m
+[31m-    const user = users.get(socket.id);[m
+[31m-    if (!user) {[m
+[31m-      socket.emit('error', { message: 'User not found' });[m
+[31m-      return;[m
+[31m-    }[m
+[31m-    [m
+[31m-    // Allow sending if there's content OR attachments, not requiring both[m
+[31m-    const hasContent = content && typeof content === 'string' && content.trim() !== '';[m
+[31m-    const hasAttachments = attachments && Array.isArray(attachments) && attachments.length > 0;[m
+[31m-    [m
+[31m-    if (!hasContent && !hasAttachments) {[m
+[31m-      socket.emit('error', { message: 'Message must contain text or attachments' });[m
+[31m-      return;[m
+[31m-    }[m
+[31m-[m
+[31m-    const message = {[m
+[31m-      id: messageId || Date.now().toString(),[m
+[31m-      content: content || '',[m
+[31m-      sender: {[m
+[31m-        id: user.id,[m
+[31m-        username: user.username,[m
+[31m-        isOnline: true,[m
+[31m-        avatarColor: user.avatarColor[m
+[31m-      },[m
+[31m-      timestamp: Date.now(),[m
+[31m-      status: 'read',[m
+[31m-      replyTo: replyTo,[m
+[31m-      attachments: attachments || [][m
+[31m-    };[m
+[31m-    [m
+[31m-    // Save message to chat history and persist to file[m
+[31m-    chatHistory.push(message);[m
+[31m-    saveChatHistory();[m
+[31m-    [m
+[31m-    console.log('Broadcasting message:', { [m
+[31m-      content: message.content, [m
+[31m-      attachments: message.attachments?.length,[m
+[31m-      sender: user.username [m
+[31m-    });[m
+[31m-  
