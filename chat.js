@@ -213,6 +213,7 @@ io.on('connection', (socket) => {
 
   // Start a group video call
   socket.on('start_call', ({ username, userId }) => {
+    console.log('User starting call:', username, userId);
     // Notify all other users of incoming call
     socket.broadcast.emit('incoming_call', {
       from: { username, userId, socketId: socket.id }
@@ -221,6 +222,7 @@ io.on('connection', (socket) => {
 
   // Accept call
   socket.on('accept_call', ({ username, userId }) => {
+    console.log('User accepting call:', username, userId);
     // Notify all users (including initiator) that this user accepted
     io.emit('call_accepted', {
       username,
@@ -253,6 +255,7 @@ io.on('connection', (socket) => {
 
   // Reject call
   socket.on('reject_call', ({ username, userId }) => {
+    console.log('User rejecting call:', username, userId);
     // Notify all users (including initiator) that this user rejected
     io.emit('call_rejected', {
       username,
@@ -263,6 +266,7 @@ io.on('connection', (socket) => {
 
   // End call
   socket.on('end_call', ({ username, userId }) => {
+    console.log('User ending call:', username, userId);
     // Notify all users to end the call
     io.emit('call_ended', {
       username,
@@ -278,6 +282,8 @@ io.on('connection', (socket) => {
     const targetSocketId = userIdToSocketId.get(data.to);
     if (targetSocketId) {
       io.to(targetSocketId).emit('webrtc_offer', data);
+    } else {
+      console.log('Target user not found for offer:', data.to);
     }
   });
 
@@ -288,6 +294,8 @@ io.on('connection', (socket) => {
     const targetSocketId = userIdToSocketId.get(data.to);
     if (targetSocketId) {
       io.to(targetSocketId).emit('webrtc_answer', data);
+    } else {
+      console.log('Target user not found for answer:', data.to);
     }
   });
 
@@ -298,6 +306,8 @@ io.on('connection', (socket) => {
     const targetSocketId = userIdToSocketId.get(data.to);
     if (targetSocketId) {
       io.to(targetSocketId).emit('webrtc_ice_candidate', data);
+    } else {
+      console.log('Target user not found for ICE candidate:', data.to);
     }
   });
 
