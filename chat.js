@@ -14,7 +14,8 @@ const getCurrentDomain = () => {
   if (process.env.NODE_ENV === 'production') {
     return 'https://chat-backend-lfwv.onrender.com';
   }
-  return 'http://192.168.1.3:5000';
+  // For development, use HTTPS if available, otherwise HTTP
+  return process.env.HTTPS === 'true' ? 'https://192.168.1.3:5000' : 'http://192.168.1.3:5000';
 };
 
 const io = socketIo(server, {
